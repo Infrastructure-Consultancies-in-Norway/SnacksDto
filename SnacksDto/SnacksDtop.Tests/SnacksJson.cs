@@ -1,0 +1,80 @@
+﻿using System.Linq;
+using System.Text.Json;
+
+namespace SnacksDtop.Tests;
+
+public sealed class SnacksJsonTests
+{
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    [Fact]
+    public void SnacksJson_ShouldDeserializeAndContainPropertySets()
+    {
+        var sets = LoadSnacksJson();
+
+        Assert.NotNull(sets);
+        Assert.NotEmpty(sets);
+
+        foreach (var set in sets)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(set.Name));
+            Assert.NotNull(set.Properties);
+            Assert.NotEmpty(set.Properties);
+
+            var codes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var property in set.Properties)
+            {
+                Assert.False(string.IsNullOrWhiteSpace(property.Code));
+                Assert.True(codes.Add(property.Code), $"Duplicate property code '{property.Code}' in set '{set.Name}'.");
+                Assert.Contains(property.Requirement, new[] { 0, 1, 2 });
+            }
+        }
+    }
+
+    [Fact]
+    public void SnacksJson_ShouldContainMandatoryPropertiesForBimModellinfo()
+    {
+        var sets = LoadSnacksJson();
+        var modellinfo = Assert.Single(sets, s => s.Name == "BIM_Modellinfo");
+        Assert.Contains(modellinfo.Properties, p => p.Requirement == 2);
+    }
+
+    private static IReadOnlyList<PropertySet> LoadSnacksJson()
+    {
+        var path = GetSnacksJsonPath();
+        var json = File.ReadAllText(path);
+        var parsed = JsonSerializer.Deserialize<IReadOnlyList<PropertySet>>(json, JsonOptions);
+        Assert.NotNull(parsed);
+        return parsed!;
+    }
+
+    private static string GetSnacksJsonPath()
+    {
+        var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var defaultPath = Path.Combine(solutionRoot, "SnacksDto", "artifacts", "snacks.json");
+        if (File.Exists(defaultPath))
+        {
+            return defaultPath;
+        }
+
+        var fallback = Directory.EnumerateFiles(solutionRoot, "snacks.json", SearchOption.AllDirectories).FirstOrDefault();
+        Assert.False(string.IsNullOrEmpty(fallback), "snacks.json not found in repository.");
+        return fallback!;
+    }
+
+    private sealed record PropertySet
+    {
+        public string Name { get; init; } = string.Empty;
+        public string? DisplayName { get; init; }
+        public List<Property> Properties { get; init; } = new();
+    }
+
+    private sealed record Property
+    {
+        public string Code { get; init; } = string.Empty;
+        public int Requirement { get; init; }
+    }
+}
