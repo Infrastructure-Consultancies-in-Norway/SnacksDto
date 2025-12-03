@@ -6,4 +6,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <None Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="artifacts\" />
+    <Folder Include="SnacksDto\" />
+    <Folder Include="tools\" />
+    <Folder Include="data\" />
+    <Folder Include="src\" />
+  </ItemGroup>
+
 </Project>
