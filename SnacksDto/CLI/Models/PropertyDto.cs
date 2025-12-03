@@ -13,5 +13,13 @@ public sealed record class PropertyDto
     public string? Description { get; init; }
     public string? Notes { get; init; }
     public string? StatusColor { get; init; }
+    public RequirementLevel Requirement { get; init; } = RequirementLevel.Unknown;
     public bool AllowAnyValue { get; init; }
+}
+
+public enum RequirementLevel
+{
+    Unknown = 0,
+    Optional,
+    Mandatory
 }

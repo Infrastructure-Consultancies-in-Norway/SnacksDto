@@ -65,13 +65,14 @@ internal sealed class WorkbookExtractor
         var headerRow = headerCell.Address.RowNumber;
         var properties = new List<PropertyDto>();
         var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? headerRow;
+        var limitRow = DetermineLastPropertyRow(worksheet, headerRow, lastRow);
         var blankRowStreak = 0;
 
         var titleValue = ReadCellString(worksheet, 1, NameColumn);
         var (displayName, scope) = ParseTitle(titleValue);
         var discipline = ReadCellString(worksheet, 2, NameColumn);
 
-        for (var row = headerRow + 1; row <= lastRow && blankRowStreak < 5; row++)
+        for (var row = headerRow + 1; row <= limitRow && blankRowStreak < 5; row++)
         {
             var propertyNameRaw = ReadCellString(worksheet, row, NameColumn);
 
@@ -112,6 +113,7 @@ internal sealed class WorkbookExtractor
                 Description = description,
                 Notes = notes,
                 StatusColor = color,
+                Requirement = MapRequirement(color),
                 AllowAnyValue = allowAny
             };
 
@@ -192,6 +194,44 @@ internal sealed class WorkbookExtractor
 
         var parts = value.Split(new[] { ',', ';' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         return parts.Length == 0 ? new[] { value.Trim() } : parts;
+    }
+
+    private static RequirementLevel MapRequirement(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+        {
+            return RequirementLevel.Unknown;
+        }
+
+        var normalized = color.Trim();
+        return normalized.Equals("Grønn", StringComparison.OrdinalIgnoreCase)
+            ? RequirementLevel.Mandatory
+            : normalized.Equals("Grå", StringComparison.OrdinalIgnoreCase)
+                ? RequirementLevel.Optional
+                : RequirementLevel.Unknown;
+    }
+
+    private static int DetermineLastPropertyRow(IXLWorksheet worksheet, int headerRow, int lastRow)
+    {
+        for (var row = lastRow; row > headerRow; row--)
+        {
+            var color = ReadCellString(worksheet, row, ColorColumn);
+            var name = ReadCellString(worksheet, row, NameColumn);
+            if (!string.IsNullOrWhiteSpace(color) && !string.IsNullOrWhiteSpace(name))
+            {
+                return row;
+            }
+        }
+
+        for (var row = lastRow; row > headerRow; row--)
+        {
+            if (!string.IsNullOrWhiteSpace(ReadCellString(worksheet, row, NameColumn)))
+            {
+                return row;
+            }
+        }
+
+        return headerRow;
     }
 
     private static bool RowIsEmpty(IXLWorksheet worksheet, int row)
