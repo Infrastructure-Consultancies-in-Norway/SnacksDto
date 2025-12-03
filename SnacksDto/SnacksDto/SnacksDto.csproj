@@ -13,10 +13,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="artifacts\" />
+    <None Include="artifacts\snacks.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="tools\" />
     <Folder Include="data\" />
-    <Folder Include="src\" />
   </ItemGroup>
 
 </Project>
