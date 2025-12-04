@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CLI;
@@ -39,7 +40,8 @@ try
     var json = JsonSerializer.Serialize(propertySets, new JsonSerializerOptions
     {
         WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     });
 
     File.WriteAllText(outputPath, json);
