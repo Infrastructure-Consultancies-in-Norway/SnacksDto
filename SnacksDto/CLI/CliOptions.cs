@@ -4,7 +4,9 @@ internal sealed record class CliOptions(
     string? WorkbookPath,
     string? OutputPath,
     IReadOnlyList<string> SheetFilters,
-    bool ShowHelp)
+    bool ShowHelp,
+    bool SkipUpdate,
+    bool ForceDownload)
 {
     public static CliOptions Parse(string[] args)
     {
@@ -12,6 +14,8 @@ internal sealed record class CliOptions(
         string? outputPath = null;
         var sheets = new List<string>();
         var showHelp = false;
+        var skipUpdate = false;
+        var forceDownload = false;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -39,6 +43,14 @@ internal sealed record class CliOptions(
                     showHelp = true;
                     break;
 
+                case "--skip-update":
+                    skipUpdate = true;
+                    break;
+
+                case "--force-download":
+                    forceDownload = true;
+                    break;
+
                 default:
                     throw new ArgumentException($"Unknown argument '{args[i]}'");
             }
@@ -48,7 +60,9 @@ internal sealed record class CliOptions(
             workbookPath,
             outputPath,
             sheets,
-            showHelp);
+            showHelp,
+            skipUpdate,
+            forceDownload);
     }
 
     private static string ReadNextValue(IReadOnlyList<string> args, ref int index, string currentArg)

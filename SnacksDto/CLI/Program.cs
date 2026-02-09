@@ -16,9 +16,13 @@ try
     }
 
     var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
-
-    // Todo: Remember to fetch this from Github itself later. https://github.com/Infrastructure-Consultancies-in-Norway/Infrastructure-Consultancies-in-Norway.github.io/tree/master/Files
     var workbookPath = ResolveWorkbookPath(solutionRoot, options.WorkbookPath);
+
+    if (!options.SkipUpdate)
+    {
+        var downloader = new GitHubFileDownloader();
+        await downloader.UpdateIfNeededAsync(workbookPath, options.ForceDownload);
+    }
 
     if (!File.Exists(workbookPath))
     {
@@ -67,8 +71,16 @@ catch (Exception ex)
 static void PrintUsage()
 {
     Console.WriteLine("SnacksDto workbook extractor");
-    Console.WriteLine("Usage: dotnet run -- [-w <workbookPath>] [-o <outputPath>] [--sheet <name>]");
-    Console.WriteLine("Defaults: workbook=SnacksDto/SnacksDto/data/EgenskapsstrukturV10.xlsx, output=SnacksDto/artifacts/psets.json");
+    Console.WriteLine("Usage: dotnet run -- [-w <workbookPath>] [-o <outputPath>] [--sheet <name>] [--skip-update] [--force-download]");
+    Console.WriteLine("Defaults: workbook=SnacksDto/SnacksDto/data/Egenskapsstruktur.xlsx, output=SnacksDto/artifacts/psets.json");
+    Console.WriteLine("");
+    Console.WriteLine("Options:");
+    Console.WriteLine("  -w, --workbook          Path to Excel workbook");
+    Console.WriteLine("  -o, --output            Path to output JSON file");
+    Console.WriteLine("  -s, --sheet             Sheet names to extract (comma-separated)");
+    Console.WriteLine("  --skip-update           Skip checking for updates on GitHub");
+    Console.WriteLine("  --force-download        Force download from GitHub regardless of version");
+    Console.WriteLine("  -h, --help              Show this help message");
 }
 
 static string ResolveWorkbookPath(string solutionRoot, string? requestedPath)
@@ -80,6 +92,9 @@ static string ResolveWorkbookPath(string solutionRoot, string? requestedPath)
 
     var candidates = new[]
     {
+        Path.Combine(solutionRoot, "SnacksDto", "data", "Egenskapsstruktur.xlsx"),
+        Path.Combine(solutionRoot, "data", "Egenskapsstruktur.xlsx"),
+        Path.Combine(solutionRoot, "Egenskapsstruktur.xlsx"),
         Path.Combine(solutionRoot, "SnacksDto", "data", "EgenskapsstrukturV10.xlsx"),
         Path.Combine(solutionRoot, "data", "EgenskapsstrukturV10.xlsx"),
         Path.Combine(solutionRoot, "EgenskapsstrukturV10.xlsx")
@@ -93,7 +108,7 @@ static string ResolveWorkbookPath(string solutionRoot, string? requestedPath)
         }
     }
 
-    throw new FileNotFoundException("Could not locate EgenskapsstrukturV10.xlsx. Use --workbook to specify the path.");
+    return Path.Combine(solutionRoot, "SnacksDto", "data", "Egenskapsstruktur.xlsx");
 }
 
 static string ResolveOutputPath(string solutionRoot, string? requestedPath)
