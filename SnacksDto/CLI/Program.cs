@@ -16,6 +16,8 @@ try
     }
 
     var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+
+    // Todo: Remember to fetch this from Github itself later. https://github.com/Infrastructure-Consultancies-in-Norway/Infrastructure-Consultancies-in-Norway.github.io/tree/master/Files
     var workbookPath = ResolveWorkbookPath(solutionRoot, options.WorkbookPath);
 
     if (!File.Exists(workbookPath))
