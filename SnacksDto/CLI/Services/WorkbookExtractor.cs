@@ -18,6 +18,7 @@ internal sealed class WorkbookExtractor
     private const int NotesColumn = 10;       // J
     private const int ColorColumn = 11;    // K
 
+    private static readonly string[] DefaultSheetPrefixes = { "KON", "BIM" };
     private static readonly Regex ScopeRegex = new(@"\(([^)]+)\)");
 
     public IReadOnlyList<PropertySetDto> Extract(string workbookPath, IReadOnlyCollection<string>? sheetFilters = null)
@@ -28,7 +29,8 @@ internal sealed class WorkbookExtractor
         }
 
         using var workbook = new XLWorkbook(workbookPath);
-        var filters = sheetFilters is null || sheetFilters.Count == 0
+        
+        var explicitFilters = sheetFilters is null || sheetFilters.Count == 0
             ? null
             : new HashSet<string>(sheetFilters.Where(s => !string.IsNullOrWhiteSpace(s)), StringComparer.OrdinalIgnoreCase);
 
@@ -36,7 +38,17 @@ internal sealed class WorkbookExtractor
 
         foreach (var worksheet in workbook.Worksheets)
         {
-            if (filters is not null && !filters.Contains(worksheet.Name))
+            // If explicit filters provided, use those for exact name matching
+            if (explicitFilters is not null)
+            {
+                if (!explicitFilters.Contains(worksheet.Name))
+                {
+                    continue;
+                }
+            }
+            // Otherwise, use default prefix filtering for KON and BIM sheets
+            else if (!worksheet.Name.StartsWith("KON", StringComparison.Ordinal) && 
+                     !worksheet.Name.StartsWith("BIM", StringComparison.Ordinal))
             {
                 continue;
             }
