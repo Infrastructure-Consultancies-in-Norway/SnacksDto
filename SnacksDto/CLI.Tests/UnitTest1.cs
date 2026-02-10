@@ -14,10 +14,10 @@ public sealed class WorkbookExtractorTests : IDisposable
         var workbookPath = CreateWorkbook(sheet =>
         {
             PopulateHeaders(sheet);
-            SetPropertyRow(sheet, 4, "MOD.01 - Version", "IfcText", "IfcBuilding", "v1", "Grønn");
+            SetPropertyRow(sheet, 4, "MOD.01 - Version", "IfcText", "IfcBuilding", "v1", "Svart");
             SetPropertyRow(sheet, 5, "MOD.02 - Optional", "IfcText", "IfcBridge", "demo", "Grå");
-            sheet.Cell(6, 2).Value = "NOTE - IGNORE";
-            sheet.Cell(6, 11).Value = string.Empty;
+            sheet.Cell(6, 1).Value = "NOTE - IGNORE";
+            sheet.Cell(6, 9).Value = string.Empty;
         });
 
         var extractor = new WorkbookExtractor();
@@ -27,11 +27,11 @@ public sealed class WorkbookExtractorTests : IDisposable
         Assert.Equal("Sheet", set.Name);
         Assert.Equal(2, set.Properties.Count);
 
-        var mandatory = Assert.Single(set.Properties, p => p.Code == "MOD.01");
-        Assert.Equal(RequirementLevel.Mandatory, mandatory.Requirement);
+        var mandatory = Assert.Single(set.Properties, p => p.PropertyName == "MOD.01 - Version");
+        Assert.True(mandatory.Required);
 
-        var optional = Assert.Single(set.Properties, p => p.Code == "MOD.02");
-        Assert.Equal(RequirementLevel.Optional, optional.Requirement);
+        var optional = Assert.Single(set.Properties, p => p.PropertyName == "MOD.02 - Optional");
+        Assert.False(optional.Required);
     }
 
     private string CreateWorkbook(Action<IXLWorksheet> configure)
@@ -39,8 +39,8 @@ public sealed class WorkbookExtractorTests : IDisposable
         var path = Path.Combine(Path.GetTempPath(), $"SnacksDto_{Guid.NewGuid():N}.xlsx");
         using var workbook = new XLWorkbook();
         var sheet = workbook.AddWorksheet("Sheet");
-        sheet.Cell(1, 2).Value = "Sheet (scope)";
-        sheet.Cell(2, 2).Value = "Felles";
+        sheet.Cell(1, 1).Value = "Sheet (scope)";
+        sheet.Cell(2, 1).Value = "Felles";
         configure(sheet);
         workbook.SaveAs(path);
         _tempFiles.Add(path);
@@ -59,13 +59,12 @@ public sealed class WorkbookExtractorTests : IDisposable
             "Tillatte verdier",
             "Tillatte verdier (Regex)",
             "Forklaring",
-            "Erfaringer",
             "Farge"
         };
 
         for (var i = 0; i < headers.Length; i++)
         {
-            sheet.Cell(3, 2 + i).Value = headers[i];
+            sheet.Cell(3, 1 + i).Value = headers[i];
         }
     }
 
@@ -78,16 +77,15 @@ public sealed class WorkbookExtractorTests : IDisposable
         string sample,
         string color)
     {
-        sheet.Cell(row, 2).Value = name;
-        sheet.Cell(row, 3).Value = datatype;
-        sheet.Cell(row, 4).Value = level;
+        sheet.Cell(row, 1).Value = name;
+        sheet.Cell(row, 2).Value = datatype;
+        sheet.Cell(row, 3).Value = level;
+        sheet.Cell(row, 4).Value = sample;
         sheet.Cell(row, 5).Value = sample;
-        sheet.Cell(row, 6).Value = sample;
-        sheet.Cell(row, 7).Value = "*";
-        sheet.Cell(row, 8).Value = "^.*$";
-        sheet.Cell(row, 9).Value = "Description";
-        sheet.Cell(row, 10).Value = string.Empty;
-        sheet.Cell(row, 11).Value = color;
+        sheet.Cell(row, 6).Value = "*";
+        sheet.Cell(row, 7).Value = "^.*$";
+        sheet.Cell(row, 8).Value = "Description";
+        sheet.Cell(row, 9).Value = color;
     }
 
     public void Dispose()

@@ -5,18 +5,17 @@ using CLI.Models;
 
 namespace CLI.Services;
 
-internal sealed class WorkbookExtractor
+public sealed class WorkbookExtractor
 {
-    private const int NameColumn = 2;      // B
-    private const int DatatypeColumn = 3;  // C
-    private const int LevelColumn = 4;     // D
-    private const int SampleColumn = 5;    // E
-    private const int RecommendedColumn = 6; // F
-    private const int AllowedColumn = 7;   // G
-    private const int RegexColumn = 8;     // H
-    private const int DescriptionColumn = 9; // I
-    private const int NotesColumn = 10;       // J
-    private const int ColorColumn = 11;    // K
+    private const int NameColumn = 1;      // A
+    private const int DatatypeColumn = 2;  // B
+    private const int LevelColumn = 3;     // C
+    private const int SampleColumn = 4;    // D
+    private const int RecommendedColumn = 5; // E
+    private const int AllowedColumn = 6;   // F
+    private const int RegexColumn = 7;     // G
+    private const int DescriptionColumn = 8; // H
+    private const int ColorColumn = 9;    // I (Farge)
 
     private static readonly string[] DefaultSheetPrefixes = { "KON", "BIM" };
     private static readonly Regex ScopeRegex = new(@"\(([^)]+)\)");
@@ -53,7 +52,7 @@ internal sealed class WorkbookExtractor
                 continue;
             }
 
-            var propertySet = ParseWorksheet(worksheet);
+            var propertySet = ParseWorksheet(worksheet, workbook);
             if (propertySet is not null && propertySet.Properties.Count > 0)
             {
                 propertySets.Add(propertySet);
@@ -63,7 +62,7 @@ internal sealed class WorkbookExtractor
         return propertySets;
     }
 
-    private static PropertySetDto? ParseWorksheet(IXLWorksheet worksheet)
+    private PropertySetDto? ParseWorksheet(IXLWorksheet worksheet, XLWorkbook workbook)
     {
         var headerCell = worksheet.CellsUsed(cell => string.Equals(cell.GetString().Trim(), "Egenskapsnavn", StringComparison.OrdinalIgnoreCase))
                                    .OrderBy(cell => cell.Address.RowNumber)
@@ -82,7 +81,6 @@ internal sealed class WorkbookExtractor
 
         var titleValue = ReadCellString(worksheet, 1, NameColumn);
         var (displayName, scope) = ParseTitle(titleValue);
-        var discipline = ReadCellString(worksheet, 2, NameColumn);
 
         for (var row = headerRow + 1; row <= limitRow && blankRowStreak < 5; row++)
         {
@@ -98,7 +96,6 @@ internal sealed class WorkbookExtractor
             }
 
             blankRowStreak = 0;
-            var (code, displayNameProperty) = SplitCodeAndName(propertyNameRaw);
 
             var datatype = ReadCellString(worksheet, row, DatatypeColumn);
             var levelRaw = ReadCellString(worksheet, row, LevelColumn);
@@ -107,25 +104,34 @@ internal sealed class WorkbookExtractor
             var allowedRaw = ReadCellString(worksheet, row, AllowedColumn);
             var regex = ReadCellString(worksheet, row, RegexColumn);
             var description = ReadCellString(worksheet, row, DescriptionColumn);
-            var notes = ReadCellString(worksheet, row, NotesColumn);
             var color = ReadCellString(worksheet, row, ColorColumn);
 
-            var allowAny = string.Equals(allowedRaw, "*", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(allowedRaw);
+            // Check for hyperlinks in AllowedValues column and resolve them
+            var allowedValues = new List<string>();
+            var hyperlinkedValues = ResolveHyperlinkValues(worksheet, row, AllowedColumn, workbook);
+            if (hyperlinkedValues.Count > 0)
+            {
+                allowedValues.AddRange(hyperlinkedValues);
+            }
+            else if (!string.IsNullOrWhiteSpace(allowedRaw) && !string.Equals(allowedRaw, "*", StringComparison.OrdinalIgnoreCase))
+            {
+                allowedValues.AddRange(SplitList(allowedRaw));
+            }
+
+            var allowAny = allowedValues.Count == 0 && (string.Equals(allowedRaw, "*", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(allowedRaw));
 
             var property = new PropertyDto
             {
-                Code = code,
-                DisplayName = displayNameProperty,
+                PropertyName = propertyNameRaw,
                 Datatype = datatype,
-                ApplicableEntities = SplitLevel(levelRaw),
+                Level = SplitLevel(levelRaw),
                 SampleValue = sample,
                 RecommendedValues = SplitList(recommendedRaw),
-                AllowedValues = allowAny ? Array.Empty<string>() : SplitList(allowedRaw),
+                AllowedValues = allowedValues,
                 AllowedPattern = regex,
                 Description = description,
-                Notes = notes,
-                StatusColor = color,
-                Requirement = MapRequirement(color),
+                RequirementColor = color,
+                Required = MapRequired(color),
                 AllowAnyValue = allowAny
             };
 
@@ -141,7 +147,6 @@ internal sealed class WorkbookExtractor
         {
             Name = worksheet.Name,
             DisplayName = displayName,
-            Discipline = discipline,
             Scope = scope,
             Properties = properties
         };
@@ -151,20 +156,6 @@ internal sealed class WorkbookExtractor
     {
         var text = worksheet.Cell(row, column).GetString();
         return string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-    }
-
-    private static (string Code, string DisplayName) SplitCodeAndName(string value)
-    {
-        var trimmed = value.Trim();
-        if (string.IsNullOrEmpty(trimmed))
-        {
-            return (value, value);
-        }
-
-        var parts = trimmed.Split('-', 2, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length == 2
-            ? (parts[0], parts[1])
-            : (trimmed, trimmed);
     }
 
     private static (string? DisplayName, string? Scope) ParseTitle(string? value)
@@ -208,19 +199,15 @@ internal sealed class WorkbookExtractor
         return parts.Length == 0 ? new[] { value.Trim() } : parts;
     }
 
-    private static RequirementLevel MapRequirement(string? color)
+    private static bool MapRequired(string? color)
     {
         if (string.IsNullOrWhiteSpace(color))
         {
-            return RequirementLevel.Unknown;
+            return false;
         }
 
         var normalized = color.Trim();
-        return normalized.Equals("Grønn", StringComparison.OrdinalIgnoreCase)
-            ? RequirementLevel.Mandatory
-            : normalized.Equals("Grå", StringComparison.OrdinalIgnoreCase)
-                ? RequirementLevel.Optional
-                : RequirementLevel.Unknown;
+        return normalized.Equals("Svart", StringComparison.OrdinalIgnoreCase);
     }
 
     private static int DetermineLastPropertyRow(IXLWorksheet worksheet, int headerRow, int lastRow)
@@ -257,5 +244,62 @@ internal sealed class WorkbookExtractor
         }
 
         return true;
+    }
+
+    private IReadOnlyList<string> ResolveHyperlinkValues(IXLWorksheet worksheet, int row, int column, XLWorkbook workbook)
+    {
+        try
+        {
+            var cell = worksheet.Cell(row, column);
+            
+            // ClosedXML cells have a GetHyperlink() method
+            var hyperlink = cell.GetHyperlink();
+            if (hyperlink is null)
+            {
+                return Array.Empty<string>();
+            }
+
+            var link = hyperlink.InternalAddress;
+            if (string.IsNullOrEmpty(link))
+            {
+                return Array.Empty<string>();
+            }
+
+            // Parse hyperlink format: typically "SheetName!CellRange" or "SheetName!CellAddress"
+            // Split sheet name from range: "Oversikt!E24:E65" → ["Oversikt", "E24:E65"]
+            var exclamationIndex = link.IndexOf('!');
+            if (exclamationIndex <= 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var sheetName = link.Substring(0, exclamationIndex).Trim('\'');
+            var rangeAddress = link.Substring(exclamationIndex + 1);
+
+            var targetSheet = workbook.Worksheet(sheetName);
+            if (targetSheet is null)
+            {
+                return Array.Empty<string>();
+            }
+
+            var range = targetSheet.Range(rangeAddress);
+            var values = new List<string>();
+
+            foreach (var rangeCell in range.Cells())
+            {
+                var cellValue = rangeCell.GetString();
+                if (!string.IsNullOrWhiteSpace(cellValue))
+                {
+                    values.Add(cellValue.Trim());
+                }
+            }
+
+            return values;
+        }
+        catch
+        {
+            // If hyperlink resolution fails, return empty list
+            return Array.Empty<string>();
+        }
     }
 }

@@ -7,7 +7,6 @@ public sealed record class PropertySetDto
 {
     public string Name { get; init; } = string.Empty;
     public string? DisplayName { get; init; }
-    public string? Discipline { get; init; }
     public string? Scope { get; init; }
     public IReadOnlyList<PropertyDto> Properties { get; init; } = Array.Empty<PropertyDto>();
 }

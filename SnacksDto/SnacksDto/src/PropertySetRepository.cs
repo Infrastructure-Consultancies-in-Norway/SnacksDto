@@ -78,9 +78,9 @@ public sealed class PropertySetRepository
     }
 
     /// <summary>
-    /// Returns the properties for <paramref name="setName"/> filtered by entity and requirement level.
+    /// Returns the properties for <paramref name="setName"/> filtered by entity.
     /// </summary>
-    public IReadOnlyList<PropertyDto> GetProperties(string setName, string? entityName = null, RequirementLevel minimumRequirement = RequirementLevel.Unknown)
+    public IReadOnlyList<PropertyDto> GetProperties(string setName, string? entityName = null)
     {
         var set = GetRequired(setName);
 
@@ -89,11 +89,6 @@ public sealed class PropertySetRepository
         if (!string.IsNullOrWhiteSpace(entityName))
         {
             query = query.Where(property => property.AppliesToEntity(entityName));
-        }
-
-        if (minimumRequirement != RequirementLevel.Unknown)
-        {
-            query = query.Where(property => property.Requirement >= minimumRequirement);
         }
 
         return query.ToArray();
