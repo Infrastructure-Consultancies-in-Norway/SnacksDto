@@ -71,6 +71,24 @@ try
         Console.WriteLine($"Generated Revit shared parameter file → {revitOutputPath}");
     }
 
+    if (options.GenerateTekla)
+    {
+        var teklaOutputDir = Path.Combine(solutionRoot, "SnacksDto", "artifacts", "Tekla");
+        Directory.CreateDirectory(teklaOutputDir);
+
+        var generator = new TeklaObjectsGenerator();
+        var writer = new TeklaObjectsWriter();
+        
+        foreach (var propertySet in propertySets)
+        {
+            var teklaFile = generator.Generate(propertySet);
+            var teklaFilePath = Path.Combine(teklaOutputDir, $"objects_{propertySet.Name}.inp");
+            writer.Write(teklaFile, teklaFilePath);
+        }
+
+        Console.WriteLine($"Generated {propertySets.Count} Tekla objects.inp files → {teklaOutputDir}");
+    }
+
     return 0;
 }
 catch (ArgumentException ex)
@@ -98,6 +116,7 @@ static void PrintUsage()
     Console.WriteLine("  --skip-update           Skip checking for updates on GitHub");
     Console.WriteLine("  --force-download        Force download from GitHub regardless of version");
     Console.WriteLine("  --revit                 Generate Revit shared parameter file");
+    Console.WriteLine("  --tekla                 Generate Tekla objects.inp files");
     Console.WriteLine("  -h, --help              Show this help message");
 }
 
