@@ -9,9 +9,11 @@ public sealed class TeklaObjectsGenerator
     
     private static readonly string[] StandardObjectTypes =
     {
-        "part", "column", "beam", "plate", "bolt", "weld",
-        "beam_splice", "plate_splice", "contour_plate", 
-        "polybeam", "steel_joint", "assembly"
+        "part", "beam", "column", "beamortho", "twinprofile",
+        "contourplate", "foldedplate", "concrete_beam", "concrete_column",
+        "pad_footing", "strip_footing", "concrete_panel", "concrete_slab",
+        "concrete_item", "item", "pour_object", "surfacing",
+        "steelassembly", "precastassembly", "insituassembly"
     };
     
     private static readonly string[] ReinforcementObjectTypes =
@@ -142,18 +144,26 @@ public sealed class TeklaObjectsGenerator
         return objectType switch
         {
             "part" => "Part",
-            "column" => "Column",
             "beam" => "Beam",
-            "plate" => "Plate",
-            "bolt" => "Bolt",
-            "weld" => "Weld",
-            "beam_splice" => "Beam Splice",
-            "plate_splice" => "Plate Splice",
-            "contour_plate" => "Contour Plate",
-            "polybeam" => "Polybeam",
-            "steel_joint" => "Steel Joint",
-            "assembly" => "Assembly",
-            "rebar" => "Rebar",
+            "column" => "Column",
+            "beamortho" => "Beam/orthogonal",
+            "twinprofile" => "Twin profile",
+            "contourplate" => "Contour plate",
+            "foldedplate" => "Folded plate",
+            "concrete_beam" => "Concrete beam",
+            "concrete_column" => "Concrete column",
+            "pad_footing" => "Pad footing",
+            "strip_footing" => "Strip footing",
+            "concrete_panel" => "Panel",
+            "concrete_slab" => "Slab",
+            "concrete_item" => "Item",
+            "item" => "j_Item",
+            "pour_object" => "p_Item",
+            "surfacing" => "Surfacing",
+            "steelassembly" => "jd_SteelAssembly",
+            "precastassembly" => "jd_PrecastCastUnit",
+            "insituassembly" => "jd_CastInPlaceCastUnit",
+            "rebar" => "Reinforcing bar",
             "rebar_group" => "Rebar Group",
             "rebar_mesh" => "Rebar Mesh",
             "rebar_strand" => "Rebar Strand",

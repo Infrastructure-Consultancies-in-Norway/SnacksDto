@@ -37,7 +37,9 @@ public sealed class TeklaObjectsWriter
             Directory.CreateDirectory(directory);
         }
 
-        File.WriteAllText(outputPath, sb.ToString(), Encoding.UTF8);
+        // Use UTF-8 without BOM (Tekla doesn't support BOM)
+        var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        File.WriteAllText(outputPath, sb.ToString(), utf8NoBom);
     }
 
     private static void WriteObjectDefinitionWithTabPage(StringBuilder sb, TeklaObjectsDef objectDef)
