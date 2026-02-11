@@ -71,7 +71,33 @@ dotnet test SnacksDto.sln
 
 # Run CLI extraction tool
 dotnet run --project CLI/CLI.csproj -- --help
+
+# Generate JSON and Revit shared parameter file
+dotnet run --project CLI/CLI.csproj -- --revit
 ```
+
+### CLI Options
+
+- `-w, --workbook <path>` - Path to Excel workbook (default: auto-detected)
+- `-o, --output <path>` - Path to output JSON file (default: `SnacksDto/artifacts/snacks.json`)
+- `-s, --sheet <names>` - Comma-separated sheet names to extract (default: all sheets)
+- `--revit` - Generate Revit shared parameter file (`artifacts/Revit/snacksSharedParameters.txt`)
+- `--skip-update` - Skip checking for updates on GitHub
+- `--force-download` - Force download from GitHub regardless of version
+- `-h, --help` - Show help message
+
+### Revit Shared Parameter Files
+
+The CLI can generate Revit shared parameter files with the `--revit` flag. These files contain:
+- Parameter groups matching Excel sheet names
+- IFC datatypes automatically mapped to Revit parameter types (TEXT, YESNO, INTEGER, NUMBER, LENGTH, etc.)
+- Stable GUIDs persisted in `artifacts/Revit/guid-mappings.json` to maintain consistency across regenerations
+
+Output files:
+- `artifacts/Revit/snacksSharedParameters.txt` - Revit shared parameter file (tab-delimited format)
+- `artifacts/Revit/guid-mappings.json` - GUID persistence for parameters
+
+```bash
 
 See [.github/copilot-instructions.md](.github/copilot-instructions.md) for detailed build and development instructions.
 

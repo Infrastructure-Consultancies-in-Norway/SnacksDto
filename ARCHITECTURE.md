@@ -36,9 +36,15 @@ ClosedXML Extraction (CLI tool)
     ↓
 Canonical In-Memory Model (PropertySetDto, PropertyDto)
     ↓
-JSON/XML Serialization
-    ↓
-Embedded Resource in DTO Assembly
+├─ JSON/XML Serialization → snacks.json
+│      ↓
+│  Embedded Resource in DTO Assembly
+│
+└─ Revit Shared Parameter Generator (--revit flag)
+       ↓
+   Revit Shared Parameter File → artifacts/Revit/snacksSharedParameters.txt
+       +
+   GUID Persistence → artifacts/Revit/guid-mappings.json
 ```
 
 ### Excel Workbook Structure
@@ -77,6 +83,16 @@ The in-memory model (POCOs like `PropertySetDto`, `PropertyDto`) serves as the s
 - Case-insensitive JSON property matching
 
 ## Build and Release Flow
+
+### CLI Pipeline
+The CLI extraction tool (`CLI/CLI.csproj`) supports multiple output formats:
+
+1. **JSON Output (default):** `snacks.json` - Canonical property set definitions
+2. **Revit Shared Parameters (--revit flag):**
+   - Generates `artifacts/Revit/snacksSharedParameters.txt` in Revit's tab-delimited format
+   - Maps IFC datatypes to Revit parameter types (TEXT, YESNO, INTEGER, NUMBER, LENGTH, etc.)
+   - Maintains stable GUIDs via `artifacts/Revit/guid-mappings.json` to prevent breaking existing Revit projects
+   - Groups parameters by Excel sheet names for organizational clarity
 
 ### CI Pipeline
 1. Extract from Excel workbook → canonical JSON

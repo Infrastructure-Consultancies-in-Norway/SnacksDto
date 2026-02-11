@@ -54,6 +54,23 @@ try
 
     var propertyCount = propertySets.Sum(set => set.Properties.Count);
     Console.WriteLine($"Extracted {propertySets.Count} property sets ({propertyCount} properties) → {outputPath}");
+
+    if (options.GenerateRevit)
+    {
+        var revitOutputPath = Path.Combine(solutionRoot, "SnacksDto", "artifacts", "Revit", "snacksSharedParameters.txt");
+        var guidMappingPath = Path.Combine(solutionRoot, "SnacksDto", "artifacts", "Revit", "guid-mappings.json");
+
+        var guidManager = new GuidManager(guidMappingPath);
+        var generator = new RevitSharedParameterGenerator();
+        var revitFile = generator.Generate(propertySets, guidManager);
+
+        var writer = new RevitSharedParameterWriter();
+        writer.Write(revitFile, revitOutputPath);
+        guidManager.SaveGuidMappings();
+
+        Console.WriteLine($"Generated Revit shared parameter file → {revitOutputPath}");
+    }
+
     return 0;
 }
 catch (ArgumentException ex)
@@ -80,6 +97,7 @@ static void PrintUsage()
     Console.WriteLine("  -s, --sheet             Sheet names to extract (comma-separated)");
     Console.WriteLine("  --skip-update           Skip checking for updates on GitHub");
     Console.WriteLine("  --force-download        Force download from GitHub regardless of version");
+    Console.WriteLine("  --revit                 Generate Revit shared parameter file");
     Console.WriteLine("  -h, --help              Show this help message");
 }
 

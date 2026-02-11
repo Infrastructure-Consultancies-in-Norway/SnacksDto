@@ -6,7 +6,8 @@ internal sealed record class CliOptions(
     IReadOnlyList<string> SheetFilters,
     bool ShowHelp,
     bool SkipUpdate,
-    bool ForceDownload)
+    bool ForceDownload,
+    bool GenerateRevit)
 {
     public static CliOptions Parse(string[] args)
     {
@@ -16,6 +17,7 @@ internal sealed record class CliOptions(
         var showHelp = false;
         var skipUpdate = false;
         var forceDownload = false;
+        var generateRevit = false;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -51,6 +53,11 @@ internal sealed record class CliOptions(
                     forceDownload = true;
                     break;
 
+                case "--revit":
+                case "--generate-revit":
+                    generateRevit = true;
+                    break;
+
                 default:
                     throw new ArgumentException($"Unknown argument '{args[i]}'");
             }
@@ -62,7 +69,8 @@ internal sealed record class CliOptions(
             sheets,
             showHelp,
             skipUpdate,
-            forceDownload);
+            forceDownload,
+            generateRevit);
     }
 
     private static string ReadNextValue(IReadOnlyList<string> args, ref int index, string currentArg)
