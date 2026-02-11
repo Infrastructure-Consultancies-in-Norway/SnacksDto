@@ -58,7 +58,7 @@ try
     if (options.GenerateRevit)
     {
         var revitOutputPath = Path.Combine(solutionRoot, "SnacksDto", "artifacts", "Revit", "snacksSharedParameters.txt");
-        var guidMappingPath = Path.Combine(solutionRoot, "SnacksDto", "artifacts", "Revit", "guid-mappings.json");
+        var guidMappingPath = Path.Combine(solutionRoot, "CLI", "Data", "revit-guid-mappings.json");
 
         var guidManager = new GuidManager(guidMappingPath);
         var generator = new RevitSharedParameterGenerator();

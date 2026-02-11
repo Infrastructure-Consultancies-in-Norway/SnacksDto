@@ -44,7 +44,7 @@ Canonical In-Memory Model (PropertySetDto, PropertyDto)
        ↓
    Revit Shared Parameter File → artifacts/Revit/snacksSharedParameters.txt
        +
-   GUID Persistence → artifacts/Revit/guid-mappings.json
+   GUID Persistence → CLI/Data/revit-guid-mappings.json (version-controlled)
 ```
 
 ### Excel Workbook Structure
@@ -91,7 +91,7 @@ The CLI extraction tool (`CLI/CLI.csproj`) supports multiple output formats:
 2. **Revit Shared Parameters (--revit flag):**
    - Generates `artifacts/Revit/snacksSharedParameters.txt` in Revit's tab-delimited format
    - Maps IFC datatypes to Revit parameter types (TEXT, YESNO, INTEGER, NUMBER, LENGTH, etc.)
-   - Maintains stable GUIDs via `artifacts/Revit/guid-mappings.json` to prevent breaking existing Revit projects
+   - Maintains stable GUIDs via `CLI/Data/revit-guid-mappings.json` (version-controlled) to prevent breaking existing Revit projects
    - Groups parameters by Excel sheet names for organizational clarity
 
 ### CI Pipeline

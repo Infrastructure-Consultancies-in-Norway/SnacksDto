@@ -91,11 +91,11 @@ dotnet run --project CLI/CLI.csproj -- --revit
 The CLI can generate Revit shared parameter files with the `--revit` flag. These files contain:
 - Parameter groups matching Excel sheet names
 - IFC datatypes automatically mapped to Revit parameter types (TEXT, YESNO, INTEGER, NUMBER, LENGTH, etc.)
-- Stable GUIDs persisted in `artifacts/Revit/guid-mappings.json` to maintain consistency across regenerations
+- Stable GUIDs persisted in `CLI/Data/revit-guid-mappings.json` (version-controlled) to maintain consistency across all users and regenerations
 
 Output files:
 - `artifacts/Revit/snacksSharedParameters.txt` - Revit shared parameter file (tab-delimited format)
-- `artifacts/Revit/guid-mappings.json` - GUID persistence for parameters
+- `CLI/Data/revit-guid-mappings.json` - GUID persistence for parameters (checked into source control)
 
 ```bash
 
