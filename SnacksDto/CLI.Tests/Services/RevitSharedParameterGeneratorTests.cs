@@ -1,5 +1,6 @@
 using CLI.Models;
 using CLI.Services;
+using SnacksDto;
 
 namespace CLI.Tests.Services;
 

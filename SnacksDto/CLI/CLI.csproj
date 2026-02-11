@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../SnacksDto/SnacksDto.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Data\revit-guid-mappings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

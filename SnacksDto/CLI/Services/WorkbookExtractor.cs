@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using ClosedXML.Excel;
-using CLI.Models;
+using SnacksDto;
 
 namespace CLI.Services;
 
