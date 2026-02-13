@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.1.0-beta)'
+        required: true
+        type: string
 
 jobs:
   test-and-release:
@@ -39,11 +45,15 @@ jobs:
           zip -r snacks-artifacts.zip snacks.json Revit/ Tekla/
           ls -la
 
-      - name: Extract version from tag
+      - name: Extract version from tag or input
         id: version
         run: |
-          TAG="${{ github.ref }}"
-          VERSION="${TAG#refs/tags/v}"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            TAG="${{ github.ref }}"
+            VERSION="${TAG#refs/tags/v}"
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
