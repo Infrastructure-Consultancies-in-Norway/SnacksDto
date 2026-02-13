@@ -52,11 +52,11 @@ public sealed class TeklaObjectsGenerator
     {
         var attributes = new List<TeklaAttribute>();
         const int multiColumnThreshold = 40;
-        const int column1X = 30;
-        const int column2X = 240;
-        const int startY = 30;
+        //const int column1X = 30;
+        const int column2X = 1000;
+        const int startY = 0;
         const int yIncrement = 30;
-        const int fieldWidth = 150;
+        //const int fieldWidth = 150;
 
         var useMultiColumn = propertySet.Properties.Count > multiColumnThreshold;
         var splitIndex = useMultiColumn ? (propertySet.Properties.Count + 1) / 2 : 0; // Split in half, rounding up for column 1
