@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>SnacksDto</PackageId>
-    <Version>0.1.0-beta</Version>
+    <Version>0.1.0-alpha</Version>
     <Authors>SnacksDto Contributors</Authors>
     <Description>Data Transfer Objects for IFC Property Sets</Description>
     <PackageProjectUrl>https://github.com/yourusername/SnacksDto</PackageProjectUrl>
