@@ -22,16 +22,16 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore SnacksDto/SnacksDto.sln
 
+      - name: Generate artifacts first (JSON, Revit, Tekla)
+        run: |
+          cd SnacksDto
+          dotnet run --project CLI/CLI.csproj --configuration Debug -- --revit --tekla
+
       - name: Build
         run: dotnet build SnacksDto/SnacksDto.sln --configuration Release --no-restore
 
       - name: Run tests
         run: dotnet test SnacksDto/SnacksDto.sln --configuration Release --no-build --verbosity normal
-
-      - name: Generate artifacts (JSON, Revit, Tekla)
-        run: |
-          cd SnacksDto
-          dotnet run --project CLI/CLI.csproj --configuration Release -- --revit --tekla
 
       - name: Prepare release artifacts
         run: |
