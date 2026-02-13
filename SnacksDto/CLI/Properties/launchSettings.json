@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "CLI": {
+      "commandName": "Project"
+    },
+    "CLI Tekla": {
+      "commandName": "Project",
+      "commandLineArgs": "--tekla --skip-update"
+    }
+  }
+}

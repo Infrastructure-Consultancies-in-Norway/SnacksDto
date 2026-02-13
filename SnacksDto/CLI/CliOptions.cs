@@ -7,7 +7,8 @@ internal sealed record class CliOptions(
     bool ShowHelp,
     bool SkipUpdate,
     bool ForceDownload,
-    bool GenerateRevit)
+    bool GenerateRevit,
+    bool GenerateTekla)
 {
     public static CliOptions Parse(string[] args)
     {
@@ -18,6 +19,7 @@ internal sealed record class CliOptions(
         var skipUpdate = false;
         var forceDownload = false;
         var generateRevit = false;
+        var generateTekla = false;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -58,6 +60,11 @@ internal sealed record class CliOptions(
                     generateRevit = true;
                     break;
 
+                case "--tekla":
+                case "--generate-tekla":
+                    generateTekla = true;
+                    break;
+
                 default:
                     throw new ArgumentException($"Unknown argument '{args[i]}'");
             }
@@ -70,7 +77,8 @@ internal sealed record class CliOptions(
             showHelp,
             skipUpdate,
             forceDownload,
-            generateRevit);
+            generateRevit,
+            generateTekla);
     }
 
     private static string ReadNextValue(IReadOnlyList<string> args, ref int index, string currentArg)
