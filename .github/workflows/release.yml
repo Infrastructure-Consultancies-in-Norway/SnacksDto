@@ -28,7 +28,12 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore SnacksDto/SnacksDto.sln
 
-      - name: Generate artifacts first (JSON, Revit, Tekla)
+      - name: Create placeholder snacks.json (for build)
+        run: |
+          mkdir -p SnacksDto/SnacksDto/artifacts
+          echo "[]" > SnacksDto/SnacksDto/artifacts/snacks.json
+
+      - name: Generate artifacts (JSON, Revit, Tekla)
         run: |
           cd SnacksDto
           dotnet run --project CLI/CLI.csproj --configuration Debug -- --revit --tekla
