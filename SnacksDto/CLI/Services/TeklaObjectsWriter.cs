@@ -7,6 +7,9 @@ public sealed class TeklaObjectsWriter
 {
     public void Write(TeklaObjectsFile file, string outputPath)
     {
+        // Register encoding provider to support Windows-1252
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
         var sb = new StringBuilder();
 
         sb.AppendLine("/***************************************************************************/");
@@ -37,9 +40,10 @@ public sealed class TeklaObjectsWriter
             Directory.CreateDirectory(directory);
         }
 
-        // Use UTF-8 with BOM (Tekla requires BOM for proper display of Norwegian characters æ, ø, å)
-        var utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
-        File.WriteAllText(outputPath, sb.ToString(), utf8WithBom);
+        // Use ANSI encoding (Windows-1252) for Tekla compatibility with Norwegian characters æ, ø, å
+        // UTF-8 BOM doesn't load in Tekla, UTF-8 without BOM has decoding errors
+        var ansiEncoding = Encoding.GetEncoding(1252); // Windows-1252 (Western European)
+        File.WriteAllText(outputPath, sb.ToString(), ansiEncoding);
     }
 
     private static void WriteObjectDefinitionWithTabPage(StringBuilder sb, TeklaObjectsDef objectDef)
