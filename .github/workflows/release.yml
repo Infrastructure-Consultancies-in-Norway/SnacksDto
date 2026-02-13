@@ -60,7 +60,7 @@ jobs:
             VERSION="${{ github.event.inputs.version }}"
           else
             TAG="${{ github.ref }}"
-            VERSION="${TAG#refs/tags/v}"
+            VERSION="${TAG#refs/tags/}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
@@ -70,7 +70,7 @@ jobs:
         if: success()
         with:
           tag_name: ${{ github.ref }}
-          name: Release ${{ steps.version.outputs.version }}
+          name: SnacksDto version ${{ steps.version.outputs.version }}
           draft: false
           prerelease: true
           files: |
@@ -83,7 +83,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           sed -i "s|<Version>.*</Version>|<Version>$VERSION</Version>|g" SnacksDto/SnacksDto/SnacksDto.csproj
           echo "Updated SnacksDto.csproj with version: $VERSION"
-          grep -A1 -B1 "Version" SnacksDto/SnacksDto/SnacksDto/SnacksDto.csproj
+          grep -A1 -B1 "Version" SnacksDto/SnacksDto/SnacksDto.csproj
 
       - name: Restore for pack
         run: dotnet restore SnacksDto/SnacksDto.sln
