@@ -78,8 +78,12 @@ jobs:
 
       - name: Publish to NuGet
         run: |
+          if [ -z "${{ secrets.NUGET_API_KEY }}" ]; then
+            echo "NUGET_API_KEY secret not configured. Skipping NuGet publish."
+            exit 0
+          fi
           dotnet nuget push ./nupkg/SnacksDto.${{ steps.version.outputs.version }}.nupkg \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
-        if: secrets.NUGET_API_KEY != ''
+        continue-on-error: true
