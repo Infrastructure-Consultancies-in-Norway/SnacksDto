@@ -12,4 +12,9 @@ public sealed record class TeklaAttribute
     public string AttributeValueMin { get; init; } = "0.0";
     public string? Description { get; init; }
     public bool IsUnique { get; init; } = false;
+    
+    // Optional positioning for multi-column layout
+    public int? X { get; init; }
+    public int? Y { get; init; }
+    public int? Width { get; init; }
 }

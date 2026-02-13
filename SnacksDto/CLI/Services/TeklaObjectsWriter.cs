@@ -37,9 +37,9 @@ public sealed class TeklaObjectsWriter
             Directory.CreateDirectory(directory);
         }
 
-        // Use UTF-8 without BOM (Tekla doesn't support BOM)
-        var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        File.WriteAllText(outputPath, sb.ToString(), utf8NoBom);
+        // Use UTF-8 with BOM (Tekla requires BOM for proper display of Norwegian characters æ, ø, å)
+        var utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+        File.WriteAllText(outputPath, sb.ToString(), utf8WithBom);
     }
 
     private static void WriteObjectDefinitionWithTabPage(StringBuilder sb, TeklaObjectsDef objectDef)
@@ -88,7 +88,18 @@ public sealed class TeklaObjectsWriter
         
         var attributeKeyword = attr.IsUnique ? "unique_attribute" : "attribute";
 
-        sb.AppendLine($"{indent}{attributeKeyword}(\"{attr.Name}\", \"{attr.Label}\", {attr.ValueType}, \"{attr.FieldFormat}\", {attr.SpecialFlag}, {attr.CheckSwitch}, \"{attr.AttributeValueMin}\", \"{attr.AttributeValueMax}\")");
+        // Build attribute line with optional positioning
+        var attributeLine = $"{indent}{attributeKeyword}(\"{attr.Name}\", \"{attr.Label}\", {attr.ValueType}, \"{attr.FieldFormat}\", {attr.SpecialFlag}, {attr.CheckSwitch}, \"{attr.AttributeValueMin}\", \"{attr.AttributeValueMax}\"";
+        
+        // Add positioning parameters if present
+        if (attr.X.HasValue && attr.Y.HasValue && attr.Width.HasValue)
+        {
+            attributeLine += $", {attr.X.Value}, {attr.Y.Value}, {attr.Width.Value}";
+        }
+        
+        attributeLine += ")";
+        
+        sb.AppendLine(attributeLine);
         sb.AppendLine($"{indent}{{");
         sb.AppendLine($"{indent}\tvalue(\"\", 0)");
         sb.AppendLine($"{indent}}}");

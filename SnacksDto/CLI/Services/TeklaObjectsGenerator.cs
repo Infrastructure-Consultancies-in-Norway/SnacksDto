@@ -51,12 +51,32 @@ public sealed class TeklaObjectsGenerator
     private static TeklaTabPage CreateTabPage(PropertySetDto propertySet)
     {
         var attributes = new List<TeklaAttribute>();
+        const int multiColumnThreshold = 40;
+        const int column1X = 30;
+        const int column2X = 240;
+        const int startY = 30;
+        const int yIncrement = 30;
+        const int fieldWidth = 150;
 
+        var useMultiColumn = propertySet.Properties.Count > multiColumnThreshold;
+        var splitIndex = useMultiColumn ? (propertySet.Properties.Count + 1) / 2 : 0; // Split in half, rounding up for column 1
+        
+        var index = 0;
         foreach (var property in propertySet.Properties)
         {
             var attributeName = SanitizeAttributeName(property.PropertyName);
             var (valueType, fieldFormat) = MapIfcToTeklaType(property.Datatype);
             var isUnique = IsUniqueAttribute(property.PropertyName);
+
+            int? x = null, y = null, width = null;
+            
+            if (useMultiColumn)
+            {
+                var isColumn1 = index < splitIndex;
+                x = isColumn1 ? column1X : column2X;
+                y = startY + (isColumn1 ? index : (index - splitIndex)) * yIncrement;
+                width = fieldWidth;
+            }
 
             var attribute = new TeklaAttribute
             {
@@ -66,10 +86,14 @@ public sealed class TeklaObjectsGenerator
                 FieldFormat = fieldFormat,
                 SpecialFlag = "no",
                 Description = property.Description,
-                IsUnique = isUnique
+                IsUnique = isUnique,
+                X = x,
+                Y = y,
+                Width = width
             };
 
             attributes.Add(attribute);
+            index++;
         }
 
         return new TeklaTabPage
@@ -83,15 +107,22 @@ public sealed class TeklaObjectsGenerator
     private static string SanitizeAttributeName(string name)
     {
         var sanitized = name
-            .Replace(" ", "_")
-            .Replace("-", "_")
             .Replace(".", "_")
             .Replace("/", "_")
             .Replace("\\", "_")
             .Replace("(", "")
             .Replace(")", "")
             .Replace("[", "")
-            .Replace("]", "");
+            .Replace("]", "")
+            .Replace(" - ", "_")
+            .Replace(" ", "_")
+            .Replace("-", "_");
+
+        // Collapse multiple consecutive underscores into a single underscore
+        while (sanitized.Contains("__"))
+        {
+            sanitized = sanitized.Replace("__", "_");
+        }
 
         if (sanitized.Length > 19)
         {
