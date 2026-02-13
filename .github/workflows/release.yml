@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore SnacksDto/SnacksDto.sln
+
+      - name: Build
+        run: dotnet build SnacksDto/SnacksDto.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test SnacksDto/SnacksDto.sln --configuration Release --no-build --verbosity normal
+
+      - name: Generate artifacts (JSON, Revit, Tekla)
+        run: |
+          cd SnacksDto
+          dotnet run --project CLI/CLI.csproj --configuration Release -- --revit --tekla
+
+      - name: Prepare release artifacts
+        run: |
+          cd SnacksDto/SnacksDto/artifacts
+          zip -r snacks-artifacts.zip snacks.json Revit/ Tekla/
+          ls -la
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${{ github.ref }}"
+          VERSION="${TAG#refs/tags/v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: success()
+        with:
+          tag_name: ${{ github.ref }}
+          name: Release ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: true
+          files: |
+            SnacksDto/SnacksDto/artifacts/snacks-artifacts.zip
+            SnacksDto/SnacksDto/artifacts/snacks.json
+            SnacksDto/SnacksDto/artifacts/Revit/snacksSharedParameters.txt
+
+      - name: Update version in csproj
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s|<Version>.*</Version>|<Version>$VERSION</Version>|g" SnacksDto/SnacksDto/SnacksDto.csproj
+          echo "Updated SnacksDto.csproj with version: $VERSION"
+          grep -A1 -B1 "Version" SnacksDto/SnacksDto/SnacksDto/SnacksDto.csproj
+
+      - name: Restore for pack
+        run: dotnet restore SnacksDto/SnacksDto.sln
+
+      - name: Build for pack
+        run: dotnet build SnacksDto/SnacksDto.sln --configuration Release --no-restore
+
+      - name: Pack NuGet package
+        run: dotnet pack SnacksDto/SnacksDto/SnacksDto.csproj --configuration Release --no-build --output ./nupkg
+
+      - name: Publish to NuGet
+        run: |
+          dotnet nuget push ./nupkg/SnacksDto.${{ steps.version.outputs.version }}.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+        if: secrets.NUGET_API_KEY != ''

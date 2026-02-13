@@ -4,6 +4,13 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>SnacksDto</PackageId>
+    <Version>0.1.0-beta</Version>
+    <Authors>SnacksDto Contributors</Authors>
+    <Description>Data Transfer Objects for IFC Property Sets</Description>
+    <PackageProjectUrl>https://github.com/yourusername/SnacksDto</PackageProjectUrl>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/yourusername/SnacksDto</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

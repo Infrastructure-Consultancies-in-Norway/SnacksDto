@@ -94,12 +94,87 @@ The CLI extraction tool (`CLI/CLI.csproj`) supports multiple output formats:
    - Maintains stable GUIDs via `CLI/Data/revit-guid-mappings.json` (version-controlled) to prevent breaking existing Revit projects
    - Groups parameters by Excel sheet names for organizational clarity
 
-### CI Pipeline
-1. Extract from Excel workbook → canonical JSON
-2. Validate: does new JSON match repo copy? (fail if drift detected)
-3. Run unit & integration tests
-4. Build DTO library NuGet package (includes embedded JSON)
-5. Generate JSON/XML artifacts for release
+3. **Tekla Objects (--tekla flag):**
+   - Generates `artifacts/Tekla/objects_{SHEET_NAME}.inp` files for each property set
+   - Uses Windows-1252 encoding (ANSI) for Tekla compatibility with Norwegian characters (æ, ø, å)
+   - Automatically maps properties to appropriate Tekla object types (rebar, beam, column, etc.)
+   - Version-controlled output ensures consistent regeneration across environments
+
+### GitHub Actions CI/CD Pipeline
+
+**Workflow:** `.github/workflows/release.yml`
+
+Triggered on git tag push matching pattern `v*` (e.g., `v0.1.0-beta`, `v1.0.0-stable`)
+
+#### Pipeline Steps:
+
+1. **Test Phase** (runs on every tag push)
+   - Restore dependencies
+   - Build in Release configuration
+   - Run all unit & integration tests (CLI.Tests, SnacksDtop.Tests)
+   - **Fails immediately if tests don't pass** (prevents broken releases)
+
+2. **Artifact Generation** (on test success)
+   - Run CLI with `--revit --tekla` flags to generate:
+     - `artifacts/snacks.json` (canonical property sets)
+     - `artifacts/Revit/snacksSharedParameters.txt` (Revit parameters)
+     - `artifacts/Tekla/*.inp` (17 Tekla object files)
+   - Create zip archive: `snacks-artifacts.zip`
+
+3. **Release Creation** (on success)
+   - Create GitHub Release with tag name and prerelease label
+   - Attach release assets:
+     - `snacks-artifacts.zip` (all artifacts zipped)
+     - `snacks.json` (individual JSON file)
+     - `snacksSharedParameters.txt` (individual Revit file)
+
+4. **NuGet Publishing** (on success, if API key configured)
+   - Extract version from git tag (e.g., `v0.1.0-beta` → `0.1.0-beta`)
+   - Update version in `SnacksDto/SnacksDto.csproj`
+   - Pack NuGet package: `SnacksDto.{VERSION}.nupkg`
+   - Publish to nuget.org (requires `NUGET_API_KEY` secret)
+
+### Release Workflow
+
+#### Initial Setup (One-time)
+
+1. **Create NuGet API Key:**
+   - Go to https://www.nuget.org → Account → API Keys
+   - Create new key with scopes: `Push version 0.1.0-beta` and `Push new versions`
+   - Copy the API key
+
+2. **Add GitHub Repository Secret:**
+   - Go to your repository → Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `NUGET_API_KEY`
+   - Value: paste the API key from nuget.org
+
+#### Creating a Release
+
+1. **Create and push a git tag:**
+   ```bash
+   git tag v0.1.0-beta
+   git push origin v0.1.0-beta
+   ```
+
+2. **Monitor the workflow:**
+   - Go to Actions tab in GitHub
+   - Watch the "Release" workflow execute
+   - Check build logs if any step fails
+
+3. **Release is live when:**
+   - Workflow completes successfully (green checkmark)
+   - GitHub Release appears on the Releases page
+   - NuGet package is available on nuget.org (may take a few minutes to index)
+
+#### Version Scheme
+
+- **Beta releases:** `0.1.0-beta`, `0.1.0-beta.1`, `0.2.0-beta`, etc.
+- **Stable releases:** `1.0.0`, `1.1.0`, `2.0.0`, etc.
+- **Versioning strategy:** Semantic versioning
+  - **Major:** Breaking changes (schema restructuring, deleted properties)
+  - **Minor:** New property sets or properties added
+  - **Patch:** Bug fixes, documentation updates, data corrections
 
 ### Versioning
 - Semantic versioning driven by workbook changes
@@ -108,6 +183,9 @@ The CLI extraction tool (`CLI/CLI.csproj`) supports multiple output formats:
 - Patch: data corrections, documentation updates
 
 ### Release Artifacts
-- NuGet package (SnacksDto) containing the DTO library with embedded JSON
-- JSON and XML files published as GitHub Release assets
-- Changelog documenting property-set changes
+- **GitHub Release Assets:**
+  - `snacks-artifacts.zip` - Complete bundle (JSON, Revit, Tekla)
+  - `snacks.json` - Standalone canonical JSON
+  - `snacksSharedParameters.txt` - Standalone Revit parameters file
+- **NuGet Package:** SnacksDto on nuget.org (includes embedded `snacks.json`)
+- **Changelog:** See GitHub Releases page for release notes

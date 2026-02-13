@@ -109,6 +109,17 @@ See [.github/copilot-instructions.md](.github/copilot-instructions.md) for detai
 4. CI validates the artifact and builds the NuGet package
 5. Release includes: NuGet package, JSON/XML files, and changelog
 
-## License
+## Releasing
 
-See [LICENSE](LICENSE) for terms.
+To create a release, see [.github/RELEASE.md](.github/RELEASE.md) for the complete release guide.
+
+**Quick summary:**
+1. Create a git tag: `git tag v0.1.0-beta`
+2. Push the tag: `git push origin v0.1.0-beta`
+3. GitHub Actions automatically:
+   - Runs all tests
+   - Generates artifacts (JSON, Revit, Tekla)
+   - Creates a GitHub Release with assets
+   - Publishes NuGet package (requires API key configured once)
+
+**First release setup:** See [.github/RELEASE.md](.github/RELEASE.md) for NuGet API key configuration.
