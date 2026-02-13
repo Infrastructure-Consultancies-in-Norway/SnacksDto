@@ -73,9 +73,11 @@ public sealed class TeklaObjectsGenerator
             if (useMultiColumn)
             {
                 var isColumn1 = index < splitIndex;
-                x = isColumn1 ? column1X : column2X;
-                y = startY + (isColumn1 ? index : (index - splitIndex)) * yIncrement;
-                width = fieldWidth;
+                if (!isColumn1)
+                {
+                    x = column2X;
+                    y = startY + (index - splitIndex) * yIncrement;
+                }
             }
 
             var attribute = new TeklaAttribute

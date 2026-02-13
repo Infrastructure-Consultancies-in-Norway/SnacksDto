@@ -5,7 +5,7 @@
     },
     "CLI Tekla": {
       "commandName": "Project",
-      "commandLineArgs": "--tekla"
+      "commandLineArgs": "--tekla --skip-update"
     }
   }
 }

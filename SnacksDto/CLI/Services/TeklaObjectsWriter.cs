@@ -96,9 +96,13 @@ public sealed class TeklaObjectsWriter
         var attributeLine = $"{indent}{attributeKeyword}(\"{attr.Name}\", \"{attr.Label}\", {attr.ValueType}, \"{attr.FieldFormat}\", {attr.SpecialFlag}, {attr.CheckSwitch}, \"{attr.AttributeValueMin}\", \"{attr.AttributeValueMax}\"";
         
         // Add positioning parameters if present
-        if (attr.X.HasValue && attr.Y.HasValue && attr.Width.HasValue)
+        if (attr.X.HasValue && attr.Y.HasValue)
         {
-            attributeLine += $", {attr.X.Value}, {attr.Y.Value}, {attr.Width.Value}";
+            attributeLine += $", {attr.X.Value}, {attr.Y.Value}";
+            if (attr.Width.HasValue)
+            {
+                attributeLine += $", {attr.Width.Value}";
+            }
         }
         
         attributeLine += ")";

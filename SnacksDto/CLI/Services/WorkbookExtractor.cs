@@ -251,9 +251,8 @@ public sealed class WorkbookExtractor
         try
         {
             var cell = worksheet.Cell(row, column);
-            
-            // ClosedXML cells have a GetHyperlink() method
             var hyperlink = cell.GetHyperlink();
+
             if (hyperlink is null)
             {
                 return Array.Empty<string>();
@@ -284,44 +283,44 @@ public sealed class WorkbookExtractor
 
             // Parse the range to get starting cell (e.g., "E24" from "E24:E65" or just "E24")
             var rangeStartCell = rangeAddress.Split(':')[0]; // Get "E24" from "E24:E65"
-            
+
             // Try to determine the actual last row with data
             // For ranges like "E24", find the last row in that column
             var startCell = targetSheet.Cell(rangeStartCell);
             var startRow = startCell.Address.RowNumber;
             var startCol = startCell.Address.ColumnNumber;
-            
+
             // Find last used row in the sheet
             var lastUsedRow = targetSheet.LastRowUsed()?.RowNumber() ?? startRow;
-            
+
             var values = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // Use HashSet for deduplication
-            
+
             // Iterate from startRow to lastUsedRow, collecting non-blank, non-header values
             for (var r = startRow; r <= lastUsedRow; r++)
             {
                 var cellValue = targetSheet.Cell(r, startCol).GetString();
-                
+
                 if (string.IsNullOrWhiteSpace(cellValue))
                 {
                     continue; // Skip blank cells
                 }
-                
+
                 var trimmedValue = cellValue.Trim();
-                
+
                 // Skip header-like values (e.g., "Fagkode")
                 if (trimmedValue.Equals("Fagkode", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
-                
+
                 values.Add(trimmedValue); // HashSet handles deduplication automatically
             }
 
             return values.ToList();
         }
-        catch
+        catch (Exception)
         {
-            // If hyperlink resolution fails, return empty list
+            // If hyperlink resolution fails for any reason, return empty list
             return Array.Empty<string>();
         }
     }
