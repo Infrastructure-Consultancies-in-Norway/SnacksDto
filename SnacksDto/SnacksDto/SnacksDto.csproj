@@ -4,6 +4,30 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>SnacksDto</PackageId>
+    <Version>0.1.0-alpha</Version>
+    <Authors>SnacksDto Contributors</Authors>
+    <Description>Data Transfer Objects for IFC Property Sets</Description>
+    <PackageProjectUrl>https://github.com/yourusername/SnacksDto</PackageProjectUrl>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/yourusername/SnacksDto</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <None Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="artifacts\snacks.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="tools\" />
+    <Folder Include="data\" />
+  </ItemGroup>
 
 </Project>

@@ -1,2 +1,125 @@
 # SnacksDto
-Data Transfer Objects to make it easy to implement Snacks using any programming language.
+
+Data Transfer Objects to make it easy to implement IFC Property Sets using any programming language.
+
+SnacksDto extracts property definitions from an Excel workbook, normalizes them to a canonical schema, and publishes strongly-typed C# DTOs plus JSON/XML exports for language-agnostic consumption.
+
+## Quick Start
+
+### Using the .NET DTO Library
+
+```csharp
+using SnacksDto;
+
+// Load property sets from the bundled JSON
+var repository = new PropertySetRepository();
+var modellinfo = repository.GetByName("BIM_Modellinfo");
+
+foreach (var property in modellinfo.Properties)
+{
+    Console.WriteLine($"{property.Code}: {property.DisplayName}");
+}
+```
+
+### Using JSON/XML Files
+
+Download `snacks.json` or `snacks.xml` from the [latest release](../../releases/latest) and deserialize using your language's JSON/XML libraries:
+
+```python
+import json
+
+with open('snacks.json', 'r', encoding='utf-8') as f:
+    property_sets = json.load(f)
+
+for pset in property_sets:
+    print(f"{pset['name']}: {pset['discipline']}")
+    for prop in pset['properties']:
+        print(f"  - {prop['code']}: {prop['displayName']}")
+```
+
+## Documentation
+
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** – Development guide for developers working in this codebase (build commands, testing, conventions)
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** – Design rationale, data pipeline, CI/release flow
+- **[LICENSE](LICENSE)** – License terms
+
+## Project Structure
+
+```
+SnacksDto/
+├─ SnacksDto/                  # Solution root
+│  ├─ SnacksDto/               # DTO library (net8.0)
+│  ├─ CLI/                     # Extraction tool (net8.0 console app)
+│  ├─ CLI.Tests/               # Unit tests
+│  ├─ SnacksDtop.Tests/        # Integration tests
+│  └─ SnacksDto.sln
+├─ .github/copilot-instructions.md
+├─ ARCHITECTURE.md
+└─ README.md
+```
+
+## Building Locally
+
+From the `SnacksDto/` directory:
+
+```bash
+# Build
+dotnet build SnacksDto.sln
+
+# Run tests
+dotnet test SnacksDto.sln
+
+# Run CLI extraction tool
+dotnet run --project CLI/CLI.csproj -- --help
+
+# Generate JSON and Revit shared parameter file
+dotnet run --project CLI/CLI.csproj -- --revit
+```
+
+### CLI Options
+
+- `-w, --workbook <path>` - Path to Excel workbook (default: auto-detected)
+- `-o, --output <path>` - Path to output JSON file (default: `SnacksDto/artifacts/snacks.json`)
+- `-s, --sheet <names>` - Comma-separated sheet names to extract (default: all sheets)
+- `--revit` - Generate Revit shared parameter file (`artifacts/Revit/snacksSharedParameters.txt`)
+- `--skip-update` - Skip checking for updates on GitHub
+- `--force-download` - Force download from GitHub regardless of version
+- `-h, --help` - Show help message
+
+### Revit Shared Parameter Files
+
+The CLI can generate Revit shared parameter files with the `--revit` flag. These files contain:
+- Parameter groups matching Excel sheet names
+- IFC datatypes automatically mapped to Revit parameter types (TEXT, YESNO, INTEGER, NUMBER, LENGTH, etc.)
+- Stable GUIDs persisted in `CLI/Data/revit-guid-mappings.json` (version-controlled) to maintain consistency across all users and regenerations
+
+Output files:
+- `artifacts/Revit/snacksSharedParameters.txt` - Revit shared parameter file (tab-delimited format)
+- `CLI/Data/revit-guid-mappings.json` - GUID persistence for parameters (checked into source control)
+
+```bash
+
+See [.github/copilot-instructions.md](.github/copilot-instructions.md) for detailed build and development instructions.
+
+## Workflow
+
+1. Domain experts maintain the Excel workbook in `SnacksDto/data/`
+2. Run the CLI extraction tool to parse the workbook → generates canonical `snacks.json`
+3. Commit the updated JSON artifact
+4. CI validates the artifact and builds the NuGet package
+5. Release includes: NuGet package, JSON/XML files, and changelog
+
+## Releasing
+
+To create a release, see [.github/RELEASE.md](.github/RELEASE.md) for the complete release guide.
+
+**Quick summary:**
+1. Create a git tag: `git tag v0.1.0-beta`
+2. Push the tag: `git push origin v0.1.0-beta`
+3. GitHub Actions automatically:
+   - Runs all tests
+   - Generates artifacts (JSON, Revit, Tekla)
+   - Creates a GitHub Release with assets
+   - Publishes NuGet package (requires API key configured once)
+
+**First release setup:** See [.github/RELEASE.md](.github/RELEASE.md) for NuGet API key configuration.
