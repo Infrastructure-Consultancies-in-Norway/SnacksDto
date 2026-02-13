@@ -7,7 +7,10 @@
 2. Sign in to your account
 3. Go to Account → API Keys
 4. Click "Create" to generate a new key
-5. Set scopes: "Push version 0.1.0-beta" and "Push new versions and version updates"
+5. Configure the API key:
+   - **Key Name:** `SnacksDto Release Key` (or any descriptive name)
+   - **Glob Pattern:** Enter `SnacksDto` (to allow publishing only this package)
+   - **Scopes:** Select "Push version 0.1.0-beta" and "Push new versions and version updates"
 6. Copy the generated API key
 
 ### 2. Add GitHub Repository Secret
